@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  # Service MariaDB
+  db:
+    image: mariadb:latest
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - wp-network
+
+  # Service PHP-FPM pour WordPress
+  php:
+    build: ./script
+    container_name: php
+    volumes:
+      - ./app:/app
+    networks:
+      - wp-network
+
+  # Service Nginx
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/app
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - php
+      - db
+    networks:
+      - wp-network
+
+volumes:
+  db_data:
+
+networks:
+  wp-network:
